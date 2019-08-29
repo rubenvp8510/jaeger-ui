@@ -17,13 +17,15 @@
 import * as React from 'react';
 import { Select } from 'antd';
 import { Link } from 'react-router-dom';
-import { Field, reduxForm, formValueSelector } from 'redux-form';
+import { Field, formValueSelector, reduxForm } from 'redux-form';
 
 import DiffSelection from './DiffSelection';
 import * as markers from './index.markers';
 import ResultItem from './ResultItem';
 import ScatterPlot from './ScatterPlot';
 import { getUrl } from '../url';
+import * as dependencies from '../../DeepDependencies/url';
+
 import LoadingIndicator from '../../common/LoadingIndicator';
 import NewWindowIcon from '../../common/NewWindowIcon';
 import { getLocation } from '../../TracePage/url';
@@ -158,6 +160,7 @@ export default class SearchResults extends React.PureComponent<SearchResultsProp
                 {traces.length} Trace{traces.length > 1 && 's'}
               </h2>
               <SelectSort />
+              <Link to={dependencies.getUrl()}>DDG</Link>
               {showStandaloneLink && (
                 <Link
                   className="u-tx-inherit ub-nowrap ub-ml3"

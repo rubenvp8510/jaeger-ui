@@ -56,3 +56,8 @@ export const fetchDeepDependencyGraph = createAction(
 export const fetchDependencies = createAction('@JAEGER_API/FETCH_DEPENDENCIES', () =>
   JaegerAPI.fetchDependencies()
 );
+
+export const transformTracesToDDG = createAction(
+  '@TRACES/TRANSFORM_TO_DDG',
+  payload => payload
+);

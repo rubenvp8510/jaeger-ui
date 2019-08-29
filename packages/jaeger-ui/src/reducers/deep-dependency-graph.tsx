@@ -15,10 +15,12 @@
 import { handleActions } from 'redux-actions';
 
 import { actionTypes } from '../actions/deep-dependency-graph';
-import { fetchDeepDependencyGraph } from '../actions/jaeger-api';
+import { fetchDeepDependencyGraph, transformTracesToDDG } from '../actions/jaeger-api';
 import { fetchedState } from '../constants';
 import { ApiError } from '../types/api-error';
 import transformDdgData from '../model/ddg/transformDdgData';
+import transformTracesToPaths from '../model/ddg/transformTracesToPaths';
+
 import {
   stateKey,
   EViewModifier,
@@ -136,6 +138,25 @@ export function fetchDeepDependencyGraphErred(
   };
 }
 
+// @ts-ignore
+export function transformTraces(state: TDdgState, payload) {
+  console.log(state);
+  const {traces, query } = payload;
+  const { service, operation } = query;
+  console.log(payload.traces.traces);
+  console.log("Invoked");
+  const paths = transformTracesToPaths(traces.traces, service, operation);
+  const key = stateKey(query);
+  return {
+    ...state,
+    [key]: {
+      model: transformDdgData(paths, { service, operation }),
+      state: fetchedState.DONE,
+      viewModifiers: new Map(),
+    },
+  };
+}
+
 export default handleActions(
   {
     [`${fetchDeepDependencyGraph}_PENDING`]: fetchDeepDependencyGraphStarted,
@@ -145,7 +166,6 @@ export default handleActions(
     [`${fetchDeepDependencyGraph}_REJECTED`]: guardReducerWithMeta<TDdgState, ApiError, TDdgActionMeta>(
       fetchDeepDependencyGraphErred
     ),
-
     [actionTypes.ADD_VIEW_MODIFIER]: guardReducer<TDdgState, { payload: TDdgAddViewModifierPayload }>(
       addViewModifier
     ),
@@ -160,6 +180,7 @@ export default handleActions(
       TDdgState,
       { payload: TDdgRemoveViewModifierFromIndicesPayload }
     >(viewModifierRemoval),
+    [`${transformTracesToDDG}`]: guardReducer<TDdgState, { payload: any }>(transformTraces),
   },
   {}
 );

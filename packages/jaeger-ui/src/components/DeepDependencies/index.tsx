@@ -43,6 +43,7 @@ type TDispatchProps = {
   fetchDeepDependencyGraph: (query: TDdgModelParams) => void;
   fetchServices: () => void;
   fetchServiceOperations: (service: string) => void;
+  transformTracesToDDG: (trace: any) => void;
 };
 
 type TReduxProps = TExtractUiFindFromStateReturn & {
@@ -51,6 +52,7 @@ type TReduxProps = TExtractUiFindFromStateReturn & {
   operationsForService: Record<string, string[]>;
   services?: string[] | null;
   urlState: TDdgSparseUrlState;
+  trace: any,
 };
 
 type TOwnProps = {
@@ -63,11 +65,12 @@ type TProps = TDispatchProps & TReduxProps & TOwnProps;
 // export for tests
 export class DeepDependencyGraphPageImpl extends Component<TProps> {
   static fetchModelIfStale(props: TProps) {
-    const { fetchDeepDependencyGraph, graphState = null, urlState } = props;
+    const { transformTracesToDDG, graphState = null, urlState } = props;
     const { service, operation } = urlState;
     // backend temporarily requires service and operation
     if (!graphState && service && operation) {
-      fetchDeepDependencyGraph({ service, operation, start: 0, end: 0 });
+      transformTracesToDDG({traces: props.trace, query: {service, operation, start:0, end:0 }});
+      //fetchDeepDependencyGraph({ service, operation, start: 0, end: 0 });
     }
   }
 
@@ -197,7 +200,7 @@ export class DeepDependencyGraphPageImpl extends Component<TProps> {
 
 // export for tests
 export function mapStateToProps(state: ReduxState, ownProps: TOwnProps): TReduxProps {
-  const { services: stServices } = state;
+  const { services: stServices, trace } = state;
   const { services, operationsForService } = stServices;
   const urlState = getUrlState(ownProps.location.search);
   const { density, operation, service, showOp } = urlState;
@@ -212,6 +215,7 @@ export function mapStateToProps(state: ReduxState, ownProps: TOwnProps): TReduxP
     graph = makeGraph(graphState.model, showOp, density);
   }
   return {
+    trace,
     graph,
     graphState,
     services,
@@ -223,12 +227,12 @@ export function mapStateToProps(state: ReduxState, ownProps: TOwnProps): TReduxP
 
 // export for tests
 export function mapDispatchToProps(dispatch: Dispatch<ReduxState>): TDispatchProps {
-  const { fetchDeepDependencyGraph, fetchServiceOperations, fetchServices } = bindActionCreators(
+  const { fetchDeepDependencyGraph, fetchServiceOperations, fetchServices, transformTracesToDDG } = bindActionCreators(
     jaegerApiActions,
     dispatch
   );
 
-  return { fetchDeepDependencyGraph, fetchServiceOperations, fetchServices };
+  return { fetchDeepDependencyGraph, fetchServiceOperations, fetchServices, transformTracesToDDG };
 }
 
 export default connect(
